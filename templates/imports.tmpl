@@ -1,0 +1,9 @@
+{{define "IMPORTS"}}
+{{$imports := .ToSlice -}}{{if $imports}}
+import (
+{{- range $import := $imports}}
+	"{{$import}}"
+{{- end}}
+)
+{{- end}}
+{{- end}}

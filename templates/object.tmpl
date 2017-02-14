@@ -1,0 +1,13 @@
+{{define "OBJECT" -}}
+{{- range $field := .Type}}
+	{{title $field.Name}} {{template "ATTRIBUTE" $field.Attribute}}{{template "TAGS" $field.Attribute}}
+{{- end}}
+{{- end}}
+
+
+{{define "TAGS" -}}
+{{- if .Metadata}}
+{{- if or  | .Metadata "go:struct:tag:json" | .Metadata "go:struct:tag:xml" | .Metadata "go:struct:tag:form"}} `json:"" xml:"" form:""`{{end}}
+{{- end}}
+{{- end}}
+

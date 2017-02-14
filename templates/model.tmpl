@@ -1,0 +1,10 @@
+{{define "MODEL" -}}
+package models
+{{- template "IMPORTS" .Imports}}
+
+type {{title .Model.Name}} struct {
+{{- if .Model.Attributes}}
+{{- template "OBJECT" .Model.Attributes}}
+{{- end}}
+}
+{{end}}
