@@ -23,7 +23,7 @@ type FileWriter interface {
 	//Path returns the realative path to the file to be written
 	Path() string
 
-	//Execute runs the template and creates the outcome
+	//Write runs the template and creates the outcome
 	Write( /* io */ ) (string, error)
 }
 

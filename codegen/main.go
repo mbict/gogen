@@ -1,7 +1,7 @@
 package main
 
 import (
-	"stalling/api/gen/gogen/codegen/cmd"
+	"github.com/mbict/gogen/codegen/cmd"
 )
 
 func main() {

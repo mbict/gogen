@@ -17,8 +17,8 @@ var (
 	mainGenerateTemplate string = `package main
 
 import _ "{{.sourceDslPath}}"
-import "stalling/api/codegen/generator"
-import "stalling/stalling/dslengine"
+import "github.com/mbict/gogen/codegen/generator"
+import "github.com/mbict/gogen/dslengine"
 import "os"
 import "fmt"
 
@@ -80,7 +80,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		//the generated files
-		fmt.Println(files)
+		fmt.Print(strings.Join(files, "\n"))
 	},
 }
 
