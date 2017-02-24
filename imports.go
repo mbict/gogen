@@ -3,6 +3,7 @@ package gogen
 import (
 	"path"
 	"regexp"
+	"github.com/mbict/gogen/lib"
 )
 
 type Imports interface {
@@ -60,7 +61,7 @@ func (i *imports) AddFromAttribute(attr *AttributeExpr) {
 }
 
 func (i *imports) ToSlice() []string {
-	return stringMapToSlice(i.packages)
+	return lib.StringMapToSlice(i.packages)
 }
 
 var basePackageRegex = regexp.MustCompile(`^(?:go[.\-_])?(.*)$`)

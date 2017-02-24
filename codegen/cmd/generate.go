@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+	"path"
 )
 
 var (
@@ -46,9 +47,7 @@ var generateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		dir, err := ioutil.TempDir("./", "codegen-")
-
 		logMessage("Generating temporary dir '%s'", dir)
-
 		if err != nil {
 			logError("Error generating temporary file `%s`", err)
 		}
@@ -57,8 +56,12 @@ var generateCmd = &cobra.Command{
 			defer func() {
 				logMessage("Removing temporary dir '%s'", dir)
 				os.RemoveAll(dir)
-
 			}()
+		}
+
+		// if there is no target given we use the base dir of the dsl path
+		if len(targetPath) == 0 {
+			targetPath = path.Dir(sourceDSLPath)
 		}
 
 		logMessage("Creating main.go file for generator execution")
@@ -86,12 +89,10 @@ var generateCmd = &cobra.Command{
 
 func init() {
 	generateCmd.Flags().StringVarP(&targetPath, "target", "t", "", "target directory to store the generated files")
-
 	RootCmd.AddCommand(generateCmd)
 }
 
 func generate(tempPath, sourceDslPath string) error {
-
 	file, err := os.Create(tempPath + "/main.go")
 	if err != nil {
 		return fmt.Errorf("Error creating main.go file `%s`", tempPath + "/main.go")
@@ -101,9 +102,7 @@ func generate(tempPath, sourceDslPath string) error {
 		file.Close()
 	}()
 
-
 	t := template.Must(template.New("main").Parse(mainGenerateTemplate))
-
 	return t.Execute(file, map[string]interface{}{
 		"targetPath":    targetPath,
 		"sourceDslPath": sourceDslPath,
@@ -113,7 +112,6 @@ func generate(tempPath, sourceDslPath string) error {
 func compile(dir string) error {
 
 	bin := "codegen"
-
 	gobin, err := exec.LookPath("go")
 	if err != nil {
 		return fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
@@ -142,7 +140,6 @@ func compile(dir string) error {
 	}
 
 	return nil
-
 }
 
 func run(genbin string) ([]string, error) {

@@ -3,11 +3,13 @@ package generator
 import (
 	"fmt"
 	"strings"
+	"github.com/mbict/gogen"
+	"path"
 )
 
 type Generator interface {
 	Name() string
-	Generate(string) error
+	Generate(string) ([]gogen.FileWriter, error)
 }
 
 var generators []Generator
@@ -18,22 +20,24 @@ func Register(g Generator) error {
 			return fmt.Errorf("generator: duplicate generator %s", g.Name())
 		}
 	}
-	//t := reflect.TypeOf(r)
-	//if t.Kind() == reflect.Ptr {
-	//	t = t.Elem()
-	//}
-	//dslPackages[t.PkgPath()] = true
 	generators = append(generators, g)
 	return nil
 }
 
 //Run will execute all generators in the base directory
 func Run(targetPath string, names ...string) error {
+	files := []gogen.FileWriter{}
 	for _, generator := range getGenerators(names) {
-		err := generator.Generate(targetPath)
+		fw, err := generator.Generate(targetPath)
 		if err != nil {
 			return fmt.Errorf("Running generator %s resulted in a error: `%s`", generator.Name(), err.Error())
 		}
+		files = append(files, fw...)
+	}
+
+	//todo: run plugins etc
+	for _, fw := range files {
+		fmt.Println(path.Join(targetPath, fw.Path()))
 	}
 
 	return nil
