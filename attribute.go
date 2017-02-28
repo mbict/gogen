@@ -2,6 +2,9 @@ package gogen
 
 // Attribute defines the base of attribute
 type AttributeExpr struct {
+	// Description is a description about the attribute
+	Description string
+
 	// Type is attribute data type e.g. Primitive, array, object
 	Type DataType
 

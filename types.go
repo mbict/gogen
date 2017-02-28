@@ -218,20 +218,6 @@ func (ut *UserTypeExpr) Name() string {
 	return ut.TypeName
 }
 
-// IsPrimitive returns true if the data type is a primitive type.
-func IsPrimitive(dt DataType) bool {
-	switch t := dt.(type) {
-	case Primitive:
-		return true
-	case *UserTypeExpr:
-		return IsPrimitive(t.AttributeExpr.Type)
-	case Composite:
-		return IsPrimitive(t.Attribute().Type)
-	default:
-		return false
-	}
-}
-
 // Usertype of predefined UUID type
 var UUID = &UserTypeExpr{
 	AttributeExpr: &AttributeExpr{
@@ -247,5 +233,5 @@ var Date = &UserTypeExpr{
 		Type: String,
 	},
 	TypeName: "Time",
-	Package: "time",
+	Package:  "time",
 }

@@ -6,19 +6,19 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"text/template"
-	"path"
 )
 
 var (
-	targetPath string
+	targetPath           string
 	mainGenerateTemplate string = `package main
 
 import _ "{{.sourceDslPath}}"
-import "github.com/mbict/gogen/codegen/generator"
+import "github.com/mbict/gogen/generator"
 import "github.com/mbict/gogen/dslengine"
 import "os"
 import "fmt"
@@ -95,7 +95,7 @@ func init() {
 func generate(tempPath, sourceDslPath string) error {
 	file, err := os.Create(tempPath + "/main.go")
 	if err != nil {
-		return fmt.Errorf("Error creating main.go file `%s`", tempPath + "/main.go")
+		return fmt.Errorf("Error creating main.go file `%s`", tempPath+"/main.go")
 	}
 
 	defer func() {
@@ -150,8 +150,8 @@ func run(genbin string) ([]string, error) {
 		return nil, fmt.Errorf("%s\n%s", err, string(out))
 	}
 	res := strings.Split(string(out), "\n")
-	for (len(res) > 0) && (res[len(res) - 1] == "") {
-		res = res[:len(res) - 1]
+	for (len(res) > 0) && (res[len(res)-1] == "") {
+		res = res[:len(res)-1]
 	}
 	return res, nil
 }

@@ -1,19 +1,23 @@
 package generator
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
-	"github.com/mbict/gogen"
+	"io/ioutil"
+	"log"
+	"os"
 	"path"
+	"strings"
 )
 
 type Generator interface {
 	Name() string
-	Generate(string) ([]gogen.FileWriter, error)
+	Generate(string) ([]FileWriter, error)
 }
 
 var generators []Generator
 
+// Register registers a new generator to the list for execution
 func Register(g Generator) error {
 	for _, o := range generators {
 		if g.Name() == o.Name() {
@@ -24,10 +28,14 @@ func Register(g Generator) error {
 	return nil
 }
 
-//Run will execute all generators in the base directory
+// Run will execute all generators in the base directory
 func Run(targetPath string, names ...string) error {
-	files := []gogen.FileWriter{}
+	gopath := os.Getenv("GOPATH")
+
+	files := []FileWriter{}
 	for _, generator := range getGenerators(names) {
+		log.Printf("Running generator `%s`\n", generator.Name())
+
 		fw, err := generator.Generate(targetPath)
 		if err != nil {
 			return fmt.Errorf("Running generator %s resulted in a error: `%s`", generator.Name(), err.Error())
@@ -36,8 +44,24 @@ func Run(targetPath string, names ...string) error {
 	}
 
 	//todo: run plugins etc
+
 	for _, fw := range files {
-		fmt.Println(path.Join(targetPath, fw.Path()))
+		filename := path.Join(gopath, "src", targetPath, fw.Path())
+		os.MkdirAll(path.Dir(filename), 0755)
+		if _, err := os.Stat(filename); err == nil {
+			fmt.Printf("[SKIP] ")
+		} else {
+
+			buf := bytes.NewBuffer(nil)
+			err = fw.Write(buf)
+			if err != nil {
+				return fmt.Errorf("Running filewrite %s generation resulted in a error:\n`%s`", filename, err.Error())
+			}
+
+			ioutil.WriteFile(filename, buf.Bytes(), 0644)
+			fmt.Printf("[OK]   ")
+		}
+		fmt.Printf("%s\n", filename)
 	}
 
 	return nil
@@ -60,7 +84,7 @@ func getGenerators(names []string) []Generator {
 	return res
 }
 
-//Registered returns the names of all the generators registered
+// Registered returns the names of all the generators registered
 func Registered() []string {
 	result := make([]string, len(generators))
 	for key, generator := range generators {

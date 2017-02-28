@@ -1,11 +1,11 @@
 package dslengine
 
 import (
-	"strings"
 	"fmt"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 // Error represents an error that occurred while running the API DSL.

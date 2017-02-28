@@ -13,7 +13,7 @@ var (
 	listGenerateTemplate string = `package main
 
 import _ "{{.sourceDslPath}}"
-import "github.com/mbict/gogen/codegen/generator"
+import "github.com/mbict/gogen/generator"
 import "github.com/mbict/gogen/dslengine"
 import "os"
 import "fmt"

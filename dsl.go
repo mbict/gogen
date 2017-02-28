@@ -22,7 +22,7 @@ type Endpoint struct {
 	Response *UserTypeExpr
 }
 
-type Root struct {
+type WebRoot struct {
 	// Path is the base path prefix to all the endpoints.
 	Path string
 
@@ -47,7 +47,7 @@ type Resource struct {
 	Actions []*Action
 
 	//The base root
-	Root *Root
+	Root *WebRoot
 }
 
 type Action struct {
@@ -106,7 +106,7 @@ type Route struct {
 //------------------
 
 // Resource returns the resource with the given name if any.
-func (r *Root) Resource(name string) *Resource {
+func (r *WebRoot) Resource(name string) *Resource {
 	for _, res := range r.Resources {
 		if res.Name == name {
 			return res

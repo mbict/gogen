@@ -1,9 +1,9 @@
 package gogen
 
 import (
+	"github.com/mbict/gogen/lib"
 	"path"
 	"regexp"
-	"github.com/mbict/gogen/lib"
 )
 
 type Imports interface {

@@ -83,15 +83,15 @@ func Run() error {
 	}
 
 	/*
-	for _, root := range roots {
-		root.IterateSets(validateSet)
-	}
-	if Errors != nil {
-		return Errors
-	}
-	for _, root := range roots {
-		root.IterateSets(finalizeSet)
-	}
+		for _, root := range roots {
+			root.IterateSets(validateSet)
+		}
+		if Errors != nil {
+			return Errors
+		}
+		for _, root := range roots {
+			root.IterateSets(finalizeSet)
+		}
 	*/
 	return nil
 }
@@ -109,12 +109,12 @@ func Execute(dsl func(), def Definition) bool {
 	initCount := len(Errors)
 	ctxStack = append(ctxStack, def)
 	dsl()
-	ctxStack = ctxStack[:len(ctxStack) - 1]
+	ctxStack = ctxStack[:len(ctxStack)-1]
 	return len(Errors) <= initCount
 }
 
-// CurrentDefinition returns the definition whose initialization DSL is currently being executed.
-func CurrentDefinition() Definition {
+// Current returns the definition whose initialization DSL is currently being executed.
+func Current() Definition {
 	current := ctxStack.Current()
 	if current == nil {
 		return &TopLevelDefinition{}
@@ -125,11 +125,9 @@ func CurrentDefinition() Definition {
 // IsTopLevelDefinition returns true if the currently evaluated DSL is a root
 // DSL (i.e. is not being run in the context of another definition).
 func IsTopLevelDefinition() bool {
-	_, ok := CurrentDefinition().(*TopLevelDefinition)
+	_, ok := Current().(*TopLevelDefinition)
 	return ok
 }
-
-
 
 // ReportError records a DSL error for reporting post DSL execution.
 func ReportError(fm string, vals ...interface{}) {
@@ -141,7 +139,7 @@ func ReportError(fm string, vals ...interface{}) {
 	} else {
 		suffix = " (top level)"
 	}
-	err := fmt.Errorf(fm + suffix, vals...)
+	err := fmt.Errorf(fm+suffix, vals...)
 	file, line := computeErrorLocation()
 	Errors = append(Errors, &Error{
 		GoError: err,
@@ -178,7 +176,7 @@ func PrintFilesOrFail(files []string, err error) {
 // invoked in an incorrect context (e.g. "Params" in "Resource").
 func IncompatibleDSL() {
 	elems := strings.Split(caller(), ".")
-	ReportError("invalid use of %s", elems[len(elems) - 1])
+	ReportError("invalid use of %s", elems[len(elems)-1])
 }
 
 // InvalidArgError records an invalid argument error.
@@ -187,8 +185,6 @@ func InvalidArgError(expected string, actual interface{}) {
 	ReportError("cannot use %#v (type %s) as type %s",
 		actual, reflect.TypeOf(actual), expected)
 }
-
-
 
 // runSet executes the DSL for all definitions in the given set. The definition DSLs may append to
 // the set as they execute.
@@ -209,7 +205,6 @@ func runSet(set DefinitionSet) error {
 	}
 	return nil
 }
-
 
 /*
 // validateSet runs the validation on all the set definitions that define one.
@@ -321,5 +316,3 @@ func sortDependenciesR(root Root, seen map[string]bool, sorted *[]Root, depFunc 
 	*sorted = append(*sorted, root)
 }
 */
-
-
