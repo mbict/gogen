@@ -7,6 +7,10 @@ type Gogen struct {
 
 var Root *Gogen
 
+func init() {
+	Root = &Gogen{}
+}
+
 // UserType looksup a usertype, if none could be found it returns a nil value
 func (g *Gogen) UserType(name string) *UserTypeExpr {
 	ut, ok := g.UserTypes[name]
@@ -15,3 +19,4 @@ func (g *Gogen) UserType(name string) *UserTypeExpr {
 	}
 	return ut
 }
+
