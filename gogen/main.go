@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mbict/gogen/codegen/cmd"
+	"github.com/mbict/gogen/cmd"
 )
 
 func main() {

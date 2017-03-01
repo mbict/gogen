@@ -1,4 +1,4 @@
-package gogen
+package generator
 
 import (
 	. "gopkg.in/check.v1"

@@ -1,14 +1,15 @@
-package gogen
+package generator
 
 import (
 	"github.com/mbict/gogen/lib"
 	"path"
 	"regexp"
+	"github.com/mbict/gogen"
 )
 
 type Imports interface {
 	Add(string)
-	AddFromAttribute(*AttributeExpr)
+	AddFromAttribute(*gogen.AttributeExpr)
 	ToSlice() []string
 }
 
@@ -35,7 +36,7 @@ func (i *imports) Add(packagePath string) {
 }
 
 // AddFromAttribute collects all the external packages needed by the attribute definition
-func (i *imports) AddFromAttribute(attr *AttributeExpr) {
+func (i *imports) AddFromAttribute(attr *gogen.AttributeExpr) {
 	if attr == nil {
 		return
 	}
@@ -43,15 +44,15 @@ func (i *imports) AddFromAttribute(attr *AttributeExpr) {
 	var recursiveImport func(interface{})
 	recursiveImport = func(in interface{}) {
 		switch t := in.(type) {
-		case Composite:
+		case gogen.Composite:
 			recursiveImport(t.Attribute().Type)
-		case *UserTypeExpr:
+		case *gogen.UserTypeExpr:
 			if t.Package != "" {
 				i.packages[t.Package] = t.Package
 			}
-		case *Array:
+		case *gogen.Array:
 			recursiveImport(t.ElemType.Type)
-		case *Object:
+		case *gogen.Object:
 			for _, field := range *t {
 				recursiveImport(field.Attribute.Type)
 			}

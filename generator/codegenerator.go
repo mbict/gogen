@@ -1,4 +1,4 @@
-package gogen
+package generator
 
 import (
 	"github.com/mbict/gogen/lib"
@@ -35,7 +35,7 @@ func NewCodeGenerator(templatePath ...string) CodeGenerator {
 
 	//base templates
 	_, file, _, _ := runtime.Caller(0)
-	pattern := filepath.Join(path.Dir(file), "templates", "*.tmpl")
+	pattern := filepath.Join(path.Dir(file), "/../codegen/templates", "*.tmpl")
 	template.Must(t.ParseGlob(pattern))
 
 	//user provided templates
