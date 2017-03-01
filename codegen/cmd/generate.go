@@ -83,7 +83,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		//the generated files
-		fmt.Print(strings.Join(files, "\n"))
+		fmt.Println(strings.Join(files, "\n"))
 	},
 }
 

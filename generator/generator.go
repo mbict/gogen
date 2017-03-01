@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+// Writers accepts the API expression and returns the file writers used to generate the output.
+type WriterGenerator interface {
+	Writers(interface{}) ([]FileWriter, error)
+}
+
 type Generator interface {
 	Name() string
 	Generate(string) ([]FileWriter, error)
@@ -48,8 +53,9 @@ func Run(targetPath string, names ...string) error {
 	for _, fw := range files {
 		filename := path.Join(gopath, "src", targetPath, fw.Path())
 		os.MkdirAll(path.Dir(filename), 0755)
+		actionTaken := "SKIP"
 		if _, err := os.Stat(filename); err == nil {
-			fmt.Printf("[SKIP] ")
+			//nop
 		} else {
 
 			buf := bytes.NewBuffer(nil)
@@ -59,9 +65,9 @@ func Run(targetPath string, names ...string) error {
 			}
 
 			ioutil.WriteFile(filename, buf.Bytes(), 0644)
-			fmt.Printf("[OK]   ")
+			actionTaken = "OK"
 		}
-		fmt.Printf("%s\n", filename)
+		log.Printf("%-7s%s\n", "["+actionTaken+"]", filename)
 	}
 
 	return nil
