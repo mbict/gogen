@@ -11,8 +11,8 @@ var (
 	// Errors contains the DSL execution errors if any.
 	Errors MultiError
 
-	// Global DSL evaluation stack
-	ctxStack contextStack
+	// Global DSL evaluation context stack
+	ctx context
 
 	// Registered DSL roots
 	roots []Root
@@ -41,13 +41,13 @@ func Register(r Root) {
 	roots = append(roots, r)
 }
 
-// Reset uses the registered RootFuncs to re-initialize the DSL roots.
-// This is useful to tests.
+// Reset will uses the registered Roots to re-initialize the definitions to their default values.
+// This is useful for tests.
 func Reset() {
 	for _, r := range roots {
 		r.Reset()
 	}
-	ctxStack.Reset()
+	ctx.Reset()
 	Errors = nil
 }
 
@@ -59,10 +59,7 @@ func Run() error {
 	if len(roots) == 0 {
 		return nil
 	}
-	//roots, err := SortRoots()
-	//if err != nil {
-	//		return err
-	//	}
+
 	Errors = nil
 	executed := 0
 	recurred := 0
@@ -107,15 +104,15 @@ func Execute(dsl func(), def Definition) bool {
 		return true
 	}
 	initCount := len(Errors)
-	ctxStack = append(ctxStack, def)
+	ctx = append(ctx, def)
 	dsl()
-	ctxStack = ctxStack[:len(ctxStack)-1]
+	ctx = ctx[:len(ctx)-1]
 	return len(Errors) <= initCount
 }
 
 // Current returns the definition whose initialization DSL is currently being executed.
 func Current() Definition {
-	current := ctxStack.Current()
+	current := ctx.Current()
 	if current == nil {
 		return &TopLevelDefinition{}
 	}
@@ -132,7 +129,7 @@ func IsTopLevelDefinition() bool {
 // ReportError records a DSL error for reporting post DSL execution.
 func ReportError(fm string, vals ...interface{}) {
 	var suffix string
-	if cur := ctxStack.Current(); cur != nil {
+	if cur := ctx.Current(); cur != nil {
 		if ctx := cur.Context(); ctx != "" {
 			suffix = fmt.Sprintf(" in %s", ctx)
 		}

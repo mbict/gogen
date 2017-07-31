@@ -5,6 +5,9 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
+	"path"
 )
 
 var debug bool
@@ -47,4 +50,10 @@ func logMessage(message string, arg ...interface{}) {
 func logError(message string, arg ...interface{}) {
 	log.Fatalf(message, arg...)
 	os.Exit(1)
+}
+
+func extractSourcePathFromWorkingDirectory() string {
+	goPath := os.Getenv("GOPATH")
+	cwd, _ := filepath.Abs(".")
+	return strings.TrimPrefix(cwd, path.Join(goPath, "src"))[1:]
 }

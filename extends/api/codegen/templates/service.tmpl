@@ -1,0 +1,11 @@
+{{ define "SERVICE" }}
+type {{ .Service.Name }} interface {
+	{{- range .Service.Methods }}
+	{{ template "METHOD" . -}}
+	{{- end }}
+}
+{{ end }}
+
+{{- define "METHOD" -}}
+	{{ .Name }}() ({{ template "ATTRIBUTE" .Result }})
+{{- end }}

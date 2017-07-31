@@ -1,10 +1,10 @@
 package dslengine
 
 // DSL evaluation contexts stack
-type contextStack []Definition
+type context []Definition
 
 // Current evaluation context, i.e. object being currently built by DSL
-func (s contextStack) Current() Definition {
+func (s context) Current() Definition {
 	if len(s) == 0 {
 		return nil
 	}
@@ -12,6 +12,6 @@ func (s contextStack) Current() Definition {
 }
 
 // Reset context stack to root
-func (s contextStack) Reset() {
+func (s context) Reset() {
 	s = s[:0]
 }

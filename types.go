@@ -218,20 +218,7 @@ func (ut *UserTypeExpr) Name() string {
 	return ut.TypeName
 }
 
-// Usertype of predefined UUID type
-var UUID = &UserTypeExpr{
-	AttributeExpr: &AttributeExpr{
-		Type: String,
-	},
-	TypeName: "UUID",
-	Package:  "github.com/satori/go.uuid",
+func (ut *UserTypeExpr) Attribute() *AttributeExpr {
+	return ut.AttributeExpr
 }
 
-// Usertype of the date / time format type
-var Date = &UserTypeExpr{
-	AttributeExpr: &AttributeExpr{
-		Type: String,
-	},
-	TypeName: "Time",
-	Package:  "time",
-}

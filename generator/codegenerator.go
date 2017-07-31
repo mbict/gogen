@@ -2,11 +2,11 @@ package generator
 
 import (
 	"github.com/mbict/gogen/lib"
-	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"text/template"
+	"runtime"
+	"path"
 )
 
 type CodeGenerator interface {

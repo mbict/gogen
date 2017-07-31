@@ -1,6 +1,6 @@
 {{define "OBJECT" -}}
 {{- range $field := .Type}}
-	{{title $field.Name}} {{template "ATTRIBUTE" $field.Attribute}}{{template "TAGS" $field.Attribute}}
+	{{title $field.Name}} {{template "ATTRIBUTE" dict "Attribute" $field.Attribute "Object" .}}{{template "TAGS" $field.Attribute}}
 {{- end}}
 {{- end}}
 

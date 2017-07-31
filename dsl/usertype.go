@@ -27,13 +27,13 @@ import (
 //
 //     // alias with description and additional validation
 //     var Hostname = Type("Hostname", String, func() {
-//         Description("A host name")
+//         DescriptionExpr("A host name")
 //         Format(FormatHostname)
 //     })
 //
 //     // new type
 //     var SumPayload = Type("SumPayload", func() {
-//         Description("Type sent to add endpoint")
+//         DescriptionExpr("Type sent to add endpoint")
 //
 //         Attribute("a", String)                 // string attribute "a"
 //         Attribute("b", Int32, "operand")       // attribute with description

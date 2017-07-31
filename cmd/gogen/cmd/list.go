@@ -39,6 +39,12 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all the names of the generators who are registered for the dsl",
 	Long:  `long description`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		//if sourceDSLPath is omitted we try to figure it out ourselves
+		if len(sourceDSLPath) == 0 {
+			sourceDSLPath = extractSourcePathFromWorkingDirectory()
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		dir, err := ioutil.TempDir("./", "codegen-")
@@ -53,7 +59,6 @@ var listCmd = &cobra.Command{
 			defer func() {
 				logMessage("Removing temporary dir '%s'", dir)
 				os.RemoveAll(dir)
-
 			}()
 		}
 

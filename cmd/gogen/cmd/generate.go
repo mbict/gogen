@@ -25,8 +25,6 @@ import "fmt"
 
 func main() {
 	failOnError( dslengine.Run() )
-
-	//fmt.Println( generator.Registered() )
 	failOnError( generator.Run("{{.targetPath}}") )
 }
 
@@ -44,6 +42,12 @@ var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Run the code generator",
 	Long:  `long description`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		//if sourceDSLPath is omitted we try to figure it out ourselves
+		if len(sourceDSLPath) == 0 {
+			sourceDSLPath = extractSourcePathFromWorkingDirectory()
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		dir, err := ioutil.TempDir("./", "codegen-")
@@ -122,7 +126,7 @@ func compile(dir string) error {
 
 	path, err := filepath.Abs(dir)
 	if err != nil {
-		return fmt.Errorf(`unable to fund abs path "%s"`, dir)
+		return fmt.Errorf(`unable to find abs path "%s"`, dir)
 	}
 
 	c := exec.Cmd{

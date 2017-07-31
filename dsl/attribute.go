@@ -60,7 +60,7 @@ import (
 //
 // When defining the type inline using Attribute recursively the function takes
 // the second form (name and DSL defining the type). The description can be
-// provided using the Description function in this case.
+// provided using the DescriptionExpr function in this case.
 //
 // Examples:
 //
@@ -94,11 +94,11 @@ import (
 // attribute is itself defined inline and has one child attribute "name".
 //
 //    Attribute("driver", func() {           // Define type inline
-//        Description("Composite attribute") // Set description
+//        DescriptionExpr("Composite attribute") // Set description
 //
 //        Attribute("name", String)          // Child attribute
 //        Attribute("age", Int32, func() {   // Another child attribute
-//            Description("Age of driver")
+//            DescriptionExpr("Age of driver")
 //            Default(42)
 //            Minimum(2)
 //        })
@@ -143,7 +143,7 @@ func Attribute(name string, args ...interface{}) {
 		dataType, description, dsl := parseAttributeArgs(baseAttr, args...)
 		//if baseAttr != nil {
 		//if description != "" {
-		//	baseAttr.Description = description
+		//	baseAttr.DescriptionExpr = description
 		//}
 		//	if dataType != nil {
 		//		baseAttr.Type = dataType
@@ -152,6 +152,7 @@ func Attribute(name string, args ...interface{}) {
 		baseAttr = &gogen.AttributeExpr{
 			Type:        dataType,
 			Description: description,
+			Validation: &gogen.ValidationExpr{},
 		}
 		//}
 		//baseAttr.Reference = parent.Reference

@@ -1,20 +1,28 @@
 {{define "ATTRIBUTE"}}
-{{- if eq .Type.Name "boolean" "int32" "int64" "uint32" "uint64" "float32" "float64" "string" -}}
-{{template "ATTRIBUTE_IS_REQUIRED" .}}{{.Type.Name}}
-{{- else if eq .Type.Name "array" -}}
-[]{{template "ATTRIBUTE" .Type.ElemType}}
-{{- else if eq .Type.Name "map" -}}
-map[{{template "ATTRIBUTE" .Type.KeyType}}]{{template "ATTRIBUTE" .Type.ElemType}}
-{{- else if eq .Type.Name "[]byte" -}}
+{{- $attr := . -}}
+{{- if .Attribute}}$attr := .Attribute{{end -}}
+{{- $obj := false -}}
+{{- if .Object}}$obj := .Object{{end -}}
+{{- if eq $attr.Type.Name "boolean" "int32" "int64" "uint32" "uint64" "float32" "float64" "string" -}}
+{{template "ATTRIBUTE_IS_REQUIRED" .}}{{$attr.Type.Name}}
+{{- else if eq $attr.Type.Name "array" -}}
+[]{{template "ATTRIBUTE" $attr.Type.ElemType}}
+{{- else if eq $attr.Type.Name "map" -}}
+map[{{template "ATTRIBUTE" $attr.Type.KeyType}}]{{template "ATTRIBUTE" $attr.Type.ElemType}}
+{{- else if eq $attr.Type.Name "[]byte" -}}
 {{.Type.Name}}
-{{- else if eq .Type.Name "any" -}}
+{{- else if eq $attr.Type.Name "any" -}}
 interface{}
 {{- else -}}
-{{template "ATTRIBUTE_IS_REQUIRED" .}}{{packageName .Type.Package}}.{{.Type.Name}}
+{{template "ATTRIBUTE_IS_REQUIRED" .}}{{packageName $attr.Type.Package}}.{{$attr.Type.Name}}
 {{- end}}
 {{- end}}
 
 
 {{define "ATTRIBUTE_IS_REQUIRED" -}}
-{{if .Validation}}{{if not .Validation.Required}}*{{end}}{{end}}
+{{- $attr := . -}}
+{{- if .Attribute}}$attr := .Attribute{{end -}}
+{{- $obj := false -}}
+{{- if .Object}}$obj := .Object{{end -}}
+{{if and $obj $obj.Validation}}{{if not $obj.Validation.Required }}*{{end}}{{end}}
 {{- end}}

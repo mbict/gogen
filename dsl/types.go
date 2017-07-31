@@ -5,6 +5,38 @@ import (
 	"github.com/mbict/gogen/dslengine"
 )
 
+//alias for types
+const (
+	Boolean = gogen.Boolean
+	Int32   = gogen.Int32
+	Int64   = gogen.Int64
+	UInt32  = gogen.UInt32
+	UInt64  = gogen.UInt64
+	Float32 = gogen.Float32
+	Float64 = gogen.Float64
+	String  = gogen.String
+	Bytes   = gogen.Bytes
+	Any     = gogen.Any
+)
+
+// Usertype of predefined UUID type
+var UUID = &gogen.UserTypeExpr{
+	AttributeExpr: &gogen.AttributeExpr{
+		Type: String,
+	},
+	TypeName: "UUID",
+	Package:  "github.com/satori/go.uuid",
+}
+
+// Usertype of the date / time format type
+var DateTime = &gogen.UserTypeExpr{
+	AttributeExpr: &gogen.AttributeExpr{
+		Type: String,
+	},
+	TypeName: "Time",
+	Package:  "time",
+}
+
 // ArrayOf creates an array type from its element type.
 //
 // ArrayOf may be used wherever types can.
@@ -54,9 +86,6 @@ func ArrayOf(v interface{}, dsl ...func()) *gogen.Array {
 	}
 	return &gogen.Array{ElemType: &at}
 }
-
-
-
 
 // MapOf creates a map from its key and element types.
 //
