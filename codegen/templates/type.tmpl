@@ -1,0 +1,22 @@
+{{ define "TYPE" }}
+    {{- if eq .Name "boolean" "int32" "int64" "uint32" "uint64" "float32" "float64" "string" -}}
+        {{- .Name }}
+    {{- else if eq .Name "array" -}}
+        []{{ template "TYPE" .ElemType.Type }}
+    {{- else if eq .Name "map" -}}
+        map[{{ template "TYPE" .KeyType }}]{{ template "TYPE" .ElemType }}
+    {{- else if eq .Name "[]byte" -}}
+        {{ .Name }}
+    {{- else if eq .Name "any" -}}
+        interface{}
+    {{- else -}}
+        {{ packageName .Package }}.{{ .Name }}
+    {{- end }}
+{{- end }}
+
+
+{{ define "TYPES" }}
+    {{- range $type := .}}
+        {{ template "TYPE" $type }}
+    {{- end -}}
+{{- end -}}

@@ -1,8 +1,7 @@
 package dsl
 
-import "goa.design/goa.v2/eval"
 
-func HTTP(dsl eval.DSLFunc) {
+func HTTP(dsl func()) {
 
 }
 

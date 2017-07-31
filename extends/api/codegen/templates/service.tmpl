@@ -7,5 +7,5 @@ type {{ .Service.Name }} interface {
 {{ end }}
 
 {{- define "METHOD" -}}
-	{{ .Name }}() ({{ template "ATTRIBUTE" .Result }})
+	{{ .Name }}() ({{ if .Results }}{{ template "TYPES" .Results }}{{ end }})
 {{- end }}

@@ -7,7 +7,7 @@ import (
 type Method struct {
 	gogen.Describer
 	Name   string
-	Result *gogen.AttributeExpr
+	Results []gogen.DataType
 }
 
 func (*Method) Context() string {

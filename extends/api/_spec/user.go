@@ -51,9 +51,11 @@ var UserService = Service("User", func() {
 
 	Method("GetUsers", func() {
 		Description("List all users")
-		Result(func() {
-			Attribute("users", ArrayOf(User), "Collection of users")
-		})
+		//Result(func() {
+		//	Attribute("users", ArrayOf(User), "Collection of users")
+		//})
+		Result(ArrayOf(User))
+
 		HTTP(func() {
 			GET("")
 		})
@@ -62,6 +64,7 @@ var UserService = Service("User", func() {
 	Method("Authenticate", func() {
 		Description("Authenticate a username and password combination")
 		Error("unauthorized", String, "Cannot authenticate the username and password combination")
+		Result(Boolean)
 		Payload(func() {
 			Required("username", "password")
 			Attribute("username", Username)
