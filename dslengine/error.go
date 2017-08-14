@@ -59,7 +59,7 @@ func computeErrorLocation() (file string, line int) {
 		}
 		return false
 	}
-	depth := 2
+	depth := 4
 	_, file, line, _ = runtime.Caller(depth)
 	for skipFunc(file) {
 		depth++

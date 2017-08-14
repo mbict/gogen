@@ -1,10 +1,10 @@
 package dsl
 
 import (
-	"github.com/mbict/gogen/dslengine"
 	"github.com/mbict/gogen"
-	"regexp"
+	"github.com/mbict/gogen/dslengine"
 	"reflect"
+	"regexp"
 	"strconv"
 )
 

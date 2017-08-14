@@ -2,6 +2,8 @@ package lib
 
 import (
 	"bytes"
+	"fmt"
+	"strconv"
 	"unicode"
 	"unicode/utf8"
 )
@@ -52,4 +54,12 @@ func xCase(name string, replace rune) string {
 		}
 	}
 	return b.String()
+}
+
+func PadLeft(l int, str string) string {
+	return fmt.Sprintf("%-"+strconv.Itoa(l)+"s", str)
+}
+
+func PadRight(l int, str string) string {
+	return fmt.Sprintf("%"+strconv.Itoa(l)+"s", str)
 }

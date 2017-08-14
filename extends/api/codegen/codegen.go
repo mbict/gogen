@@ -2,15 +2,15 @@ package codegen
 
 import (
 	"fmt"
-	"path"
-	"github.com/mbict/gogen/generator"
-	"runtime"
-	"path/filepath"
+	"github.com/mbict/gogen"
 	"github.com/mbict/gogen/extends/api"
-	"log"
-	"errors"
-	"text/template"
+	"github.com/mbict/gogen/generator"
 	"github.com/mbict/gogen/lib"
+	"log"
+	"path"
+	"path/filepath"
+	"runtime"
+	"text/template"
 )
 
 type Codegen struct {
@@ -36,7 +36,11 @@ func (g *Codegen) Writers(root interface{}) ([]generator.FileWriter, error) {
 
 	res := []generator.FileWriter{}
 	for _, service := range api.Services {
-		log.Printf("Generating service interface inside '%s'\n", service.Name)
+
+		//-------------------------------------------
+		// Services
+		//-------------------------------------------
+		log.Printf("Generating service interface for '%s'\n", service.Name)
 		sections, err := g.GenerateServiceInterface(service)
 		if err != nil {
 			return nil, err
@@ -45,6 +49,32 @@ func (g *Codegen) Writers(root interface{}) ([]generator.FileWriter, error) {
 		file := fmt.Sprintf("%s/%s.go", lib.SnakeCase(service.Name), "service")
 		fwService := generator.NewFileWriter(sections, file)
 		res = append(res, fwService)
+
+		//-------------------------------------------
+		// Endpoints
+		//-------------------------------------------
+		log.Printf("Generating endpoints for service '%s'\n", service.Name)
+		sections, err = g.GenerateEndpointsInterface(service)
+		if err != nil {
+			return nil, err
+		}
+
+		file = fmt.Sprintf("%s/%s.go", lib.SnakeCase(service.Name), "endpoint")
+		fwEndpoint := generator.NewFileWriter(sections, file)
+		res = append(res, fwEndpoint)
+
+		//-------------------------------------------
+		// Transport HTTPEndpoint
+		//-------------------------------------------
+		log.Printf("Generating http transport layer for service '%s'\n", service.Name)
+		sections, err = g.GenerateHTTPTransport(service)
+		if err != nil {
+			return nil, err
+		}
+
+		file = fmt.Sprintf("%s/%s.go", lib.SnakeCase(service.Name), "transport_http")
+		fwHTTPTransport := generator.NewFileWriter(sections, file)
+		res = append(res, fwHTTPTransport)
 	}
 
 	/*for _, a := range api.Aggregates {
@@ -127,24 +157,291 @@ func (g *Codegen) Writers(root interface{}) ([]generator.FileWriter, error) {
 }
 
 func (g *Codegen) GenerateServiceInterface(service *api.Service) ([]generator.Section, error) {
-	t := g.Template().Lookup("SERVICE")
-	if t == nil {
-		return nil, errors.New("template not found")
+
+	imports := generator.NewImports(path.Join(service.Package()))
+	t, _ := g.Template().Clone()
+	t = t.Funcs(template.FuncMap{
+		"package": func() string { return service.Package() },
+	})
+
+	imports.Add("context")
+	//gather all the imports from the result types in the methods
+	for _, method := range service.Methods {
+		imports.AddFromAttribute(method.Results)
+		imports.AddFromAttribute(method.Payload)
 	}
 
-	imports := generator.NewImports(path.Join(g.basePackage, "domain/event"))
-	imports.Add("github.com/mbict/go-cqrs")
-	//imports.AddFromAttribute(e.Attributes)
+	//create the user models
+	sections := []generator.Section{}
+	for _, ut := range gogen.Root.UserTypes {
+		if ut.Package() != service.Package() {
+			continue
+		}
 
-	s := generator.Section{
-		Template: template.Must(t.Clone()),
-		Data: map[string]interface{}{
-			"Service": service,
-			"Imports": imports,
+		imports.AddFromAttribute(ut.Attribute())
+
+		sections = append(sections, generator.Section{
+			Template: template.Must(t.Lookup("USERTYPE").Clone()),
+			Data:     ut,
+		})
+	}
+
+	//add package and imports header
+	sections = append([]generator.Section{
+		{
+			Template: template.Must(t.Lookup("PACKAGE").Clone()),
+			Data:     imports,
 		},
+	}, sections...)
+
+	//add the service interface
+	sections = append(sections,
+		generator.Section{
+			Template: template.Must(t.Lookup("SERVICE_INTERFACE").Clone()),
+			Data: map[string]interface{}{
+				"Service": service,
+				"Imports": imports,
+			},
+		})
+
+	return sections, nil
+}
+
+func (g *Codegen) GenerateEndpointsInterface(service *api.Service) ([]generator.Section, error) {
+	imports := generator.NewImports(path.Join(service.Package()))
+	t, _ := g.Template().Clone()
+	t = t.Funcs(template.FuncMap{
+		"package": func() string { return service.Package() },
+	})
+
+	//gather all the imports from the result types in the methods
+	imports.Add("context")
+	imports.Add("github.com/go-kit/kit/endpoint")
+	//for _, m := range service.Methods {
+	//	imports.AddFromAttribute(m.Results)
+	//	imports.AddFromAttribute(m.Payload)
+	//}
+
+	//create the user models
+	sections := []generator.Section{}
+	//for _, ut := range gogen.Root.UserTypes {
+	//	if ut.Package() != service.Package() {
+	//		continue
+	//	}
+	//
+	//	imports.AddFromAttribute(ut.Attribute())
+	//
+	//	sections = append(sections, generator.Section{
+	//		Template: template.Must(t.Lookup("USERTYPE").Clone()),
+	//		Data:     ut,
+	//	})
+	//}
+
+	//add package and imports header
+	sections = append([]generator.Section{
+		{
+			Template: template.Must(t.Lookup("PACKAGE").Clone()),
+			Data:     imports,
+		},
+	}, sections...)
+
+	//add the service interface
+	sections = append(sections,
+		generator.Section{
+			Template: template.Must(t.Lookup("ENDPOINTS_INTERFACE").Clone()),
+			Data: map[string]interface{}{
+				"Service": service,
+				"Imports": imports,
+			},
+		},
+		generator.Section{
+			Template: template.Must(t.Lookup("ENDPOINT_CONSTRUCTOR").Clone()),
+			Data: map[string]interface{}{
+				"Service": service,
+				"Imports": imports,
+			},
+		})
+
+	for _, method := range service.Methods {
+		if len(method.Endpoints) == 0 {
+			continue
+		}
+
+		imports.AddFromAttribute(method.Results)
+		imports.AddFromAttribute(method.Payload)
+
+		payloadObj := gogen.AsObject(method.Payload.Type)
+		if !payloadObj.IsEmpty() {
+			sections = append(sections,
+				generator.Section{
+					Template: template.Must(t.Lookup("ENDPOINT_REQUEST").Clone()),
+					Data: map[string]interface{}{
+						"Service": service,
+						"Method":  method,
+						"Payload": payloadObj,
+						"Imports": imports,
+					},
+				})
+		}
+
+		sections = append(sections,
+			generator.Section{
+				Template: template.Must(t.Lookup("ENDPOINT_RESPONSE").Clone()),
+				Data: map[string]interface{}{
+					"Service": service,
+					"Method":  method,
+					"Results": payloadObj,
+					"Imports": imports,
+				},
+			},
+			generator.Section{
+				Template: template.Must(t.Lookup("ENDPOINT_METHOD_CONSTRUCTOR").Clone()),
+				Data: map[string]interface{}{
+					"Service": service,
+					"Method":  method,
+					"Imports": imports,
+				},
+			})
+
 	}
 
-	return []generator.Section{s}, nil
+	return sections, nil
+}
+
+func (g *Codegen) GenerateHTTPTransport(service *api.Service) ([]generator.Section, error) {
+
+	//extract the http endpoints
+	var httpEndpoints []*api.HTTPEndpoint
+	service.IterateMethods(func(m *api.Method) error {
+		return m.IterateEndpoints(func(e api.Endpoint) error {
+			if httpEndpoint, ok := e.(*api.HTTPEndpoint); ok {
+				httpEndpoints = append(httpEndpoints, httpEndpoint)
+			}
+			return nil
+		})
+	})
+
+	if len(httpEndpoints) == 0 {
+		return nil, nil
+	}
+
+	imports := generator.NewImports(path.Join(service.Package()))
+	t, _ := g.Template().Clone()
+	t = t.Funcs(template.FuncMap{
+		"package": func() string { return service.Package() },
+	})
+
+	//gather all the imports from the result types in the methods
+	imports.Add("context")
+	imports.Add("encoding/json")
+	imports.Add("github.com/go-kit/kit/log")
+	imports.AddAlias("httptransport", "github.com/go-kit/kit/transport/http")
+	imports.AddAlias("mux", "github.com/mbict/httprouter")
+	imports.Add("net/http")
+	//for _, m := range service.Methods {
+	//	imports.AddFromAttribute(m.Results)
+	//	imports.AddFromAttribute(m.Payload)
+	//}
+
+	//create the user models
+
+	//for _, ut := range gogen.Root.UserTypes {
+	//	if ut.Package() != service.Package() {
+	//		continue
+	//	}
+	//
+	//	imports.AddFromAttribute(ut.Attribute())
+	//
+	//	sections = append(sections, generator.Section{
+	//		Template: template.Must(t.Lookup("USERTYPE").Clone()),
+	//		Data:     ut,
+	//	})
+	//}
+
+	sections := []generator.Section{}
+
+	//add package and imports header
+	sections = append([]generator.Section{
+		{
+			Template: template.Must(t.Lookup("PACKAGE").Clone()),
+			Data:     imports,
+		},
+	}, sections...)
+
+	sections = append(sections,
+		generator.Section{
+			// @todo: need to make template.Must(t.Lookup().Clone) nil save
+			Template: template.Must(t.Lookup("TRANSPORT_HTTP_CONSTRUCTOR").Clone()),
+			Data: map[string]interface{}{
+				"Service":   service,
+				"Endpoints": httpEndpoints,
+			},
+		})
+
+	////add the service interface
+	//sections = append(sections,
+	//	generator.Section{
+	//		Template: template.Must(t.Lookup("ENDPOINTS_INTERFACE").Clone()),
+	//		Data: map[string]interface{}{
+	//			"Service": service,
+	//			"Imports": imports,
+	//		},
+	//	},
+	//	generator.Section{
+	//		Template: template.Must(t.Lookup("ENDPOINT_CONSTRUCTOR").Clone()),
+	//		Data: map[string]interface{}{
+	//			"Service": service,
+	//			"Imports": imports,
+	//		},
+	//	})
+
+	//for _, method := range service.Methods {
+	//	if len(method.Endpoints) == 0 {
+	//		continue
+	//	}
+	//
+	//	imports.AddFromAttribute(method.Results)
+	//	imports.AddFromAttribute(method.Payload)
+	//
+	//	payloadObj := gogen.AsObject(method.Payload.Type)
+	//	if !payloadObj.IsEmpty() {
+	//		sections = append(sections,
+	//			generator.Section{
+	//				Template: template.Must(t.Lookup("ENDPOINT_REQUEST").Clone()),
+	//				Data: map[string]interface{}{
+	//					"Service": service,
+	//					"Method":  method,
+	//					"Payload": payloadObj,
+	//					"Imports": imports,
+	//				},
+	//			})
+	//	}
+	//
+	//	sections = append(sections,
+	//	)
+	//
+	//	sections = append(sections,
+	//		generator.Section{
+	//			Template: template.Must(t.Lookup("ENDPOINT_RESPONSE").Clone()),
+	//			Data: map[string]interface{}{
+	//				"Service": service,
+	//				"Method":  method,
+	//				"Results": payloadObj,
+	//				"Imports": imports,
+	//			},
+	//		},
+	//		generator.Section{
+	//			Template: template.Must(t.Lookup("ENDPOINT_METHOD_CONSTRUCTOR").Clone()),
+	//			Data: map[string]interface{}{
+	//				"Service": service,
+	//				"Method":  method,
+	//				"Imports": imports,
+	//			},
+	//		})
+	//
+	//}
+
+	return sections, nil
 }
 
 /*

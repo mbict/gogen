@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
-	"path"
 )
 
 var debug bool

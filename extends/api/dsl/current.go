@@ -1,8 +1,8 @@
 package dsl
 
 import (
-	"github.com/mbict/gogen/extends/api"
 	"github.com/mbict/gogen/dslengine"
+	"github.com/mbict/gogen/extends/api"
 )
 
 func rootDefinition() bool {
@@ -23,6 +23,22 @@ func serviceDefinition() (*api.Service, bool) {
 
 func methodDefinition() (*api.Method, bool) {
 	d, ok := dslengine.Current().(*api.Method)
+	if !ok {
+		dslengine.IncompatibleDSL()
+	}
+	return d, ok
+}
+
+func httpEndpointDefinition() (*api.HTTPEndpoint, bool) {
+	d, ok := dslengine.Current().(*api.HTTPEndpoint)
+	if !ok {
+		dslengine.IncompatibleDSL()
+	}
+	return d, ok
+}
+
+func httpDefinition() (*api.HTTP, bool) {
+	d, ok := dslengine.Current().(*api.HTTP)
 	if !ok {
 		dslengine.IncompatibleDSL()
 	}

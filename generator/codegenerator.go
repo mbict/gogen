@@ -1,12 +1,14 @@
 package generator
 
 import (
+	"github.com/mbict/gogen"
 	"github.com/mbict/gogen/lib"
+	"path"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
-	"runtime"
-	"path"
 )
 
 type CodeGenerator interface {
@@ -23,14 +25,30 @@ func NewCodeGenerator(templatePath ...string) CodeGenerator {
 	t := template.New("base")
 
 	t.Funcs(template.FuncMap{
-		"snake":   lib.SnakeCase,
-		"title":   strings.Title,
-		"toLower": strings.ToLower,
-		"toUpper": strings.ToUpper,
-		"untitle": lib.UnTitle,
+		"snake":     lib.SnakeCase,
+		"camel":     func(str string) string { return lib.VarName(str, true) },
+		"title":     strings.Title,
+		"lowercase": strings.ToLower,
+		"uppercase": strings.ToUpper,
+		"untitle":   lib.UnTitle,
+		"join":      strings.Join,
+		"quote":     strconv.Quote,
+		"unquote":   strconv.Unquote,
+		"padleft":   lib.PadLeft,
+		"padright":  lib.PadRight,
+
+		//attribute datatype specific functions
+		"isObject":    gogen.IsObject,
+		"isArray":     gogen.IsArray,
+		"isPrimitive": gogen.IsPrimitive,
+		"isMap":       gogen.IsMap,
+
 		//go specific functions
+		"varname":     lib.VarName,
 		"packageName": PackageName,
 		"dict":        lib.Dictionary,
+		"baseName":    path.Base,
+		"package":     func() string { return "" }, //empty stub
 	})
 
 	//base templates

@@ -5,17 +5,21 @@ import (
 	. "github.com/mbict/gogen/extends/api/dsl"
 )
 
-var Username = Type("Username", String, func() {
-	Description("Email/ Username of the User")
+var UserID = Type( "UserID", UUID, func() {
+	Package("user")
+} )
+
+var UsernameTrait = Trait( func() {
+	Description("Email/Username of the User")
 	//Format(Email)
 })
 
 var User = Type("User", func() {
-	Namespace("user")
+	Package("user")
 	Description("User")
 
-	Attribute("user_id", UUID)
-	Attribute("username", Username)
+	Attribute("user_id", UserID)
+	Attribute("username", String, UsernameTrait)
 	Attribute("password", String)
 	Attribute("active", Boolean, "Active and enabled user")
 	Attribute("last_login_at", DateTime, "Last time the user logged in")
@@ -26,7 +30,7 @@ var User = Type("User", func() {
 })
 
 var UserService = Service("User", func() {
-	Namespace("user")
+	Package("user")
 
 	HTTP(func() {
 		Path("/users")
@@ -44,7 +48,7 @@ var UserService = Service("User", func() {
 		})
 
 		HTTP(func() {
-			GET("/{user_id}")
+			GET("/:user_id")
 			//Response("not_found", NotFound)
 		})
 	})
@@ -54,6 +58,8 @@ var UserService = Service("User", func() {
 		//Result(func() {
 		//	Attribute("users", ArrayOf(User), "Collection of users")
 		//})
+
+		//short notation
 		Result(ArrayOf(User))
 
 		HTTP(func() {
@@ -67,16 +73,17 @@ var UserService = Service("User", func() {
 		Result(Boolean)
 		Payload(func() {
 			Required("username", "password")
-			Attribute("username", Username)
+			Attribute("username", String, UsernameTrait)
 			Attribute("password", String)
 		})
 	})
 
 	Method("CreateUser", func() {
 		Description("Create a new user")
+		Result(User)
 		Payload(func() {
 			Required("username", "password")
-			Attribute("username", Username)
+			Attribute("username", String, UsernameTrait)
 			Attribute("password", String, "Plain password")
 			Attribute("active", Boolean, "Is the user active/enabled")
 		})
@@ -90,16 +97,17 @@ var UserService = Service("User", func() {
 
 	Method("UpdateUser", func() {
 		Description("Update user")
+		Result(User)
 		Payload(func() {
 			Required("user_id")
 			Attribute("user_id", UUID)
-			Attribute("username", Username)
+			Attribute("username", String, UsernameTrait)
 			Attribute("password", String)
 			Attribute("active", Boolean, "Is the user active/enabled")
 		})
 
 		HTTP(func() {
-			PUT("/{user_id}")
+			PUT("/:user_id")
 			//Response("not_found", NotFound)
 			//Response("invalid_username", BadRequest)
 			//Response("duplicate_username", BadRequest)
@@ -113,7 +121,7 @@ var UserService = Service("User", func() {
 			Attribute("user_id", UUID)
 		})
 		HTTP(func() {
-			DELETE("/{user_id}")
+			DELETE("/:user_id")
 			//Error("not_found", NotFound)
 			//Response(StatusNoContent)
 		})

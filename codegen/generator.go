@@ -30,6 +30,11 @@ func (g *Generator) Name() string {
 }
 
 func (g *Generator) Generate(path string) ([]generator.FileWriter, error) {
+	//We set the absolute root package here
+	gogen.Root.SetPackage("/" + path)
+
+	//generate the codegenerator (if needed)
+	//todo: check if this code generator is needed
 	codegen := NewCodeGenerator(path)
 	return codegen.Writers(gogen.Root)
 }

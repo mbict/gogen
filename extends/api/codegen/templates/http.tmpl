@@ -1,0 +1,142 @@
+{{ define "TRANSPORT_HTTP_CONSTRUCTOR" }}
+func NewHTTPHandler(s Service, logger log.Logger) http.Handler {
+	// Handled routes by this transport layer
+	// -------------------------------------------------------------------------
+{{- range $endpoint := .Endpoints -}}
+	{{ range $route := $endpoint.Routes  }}
+	// {{ uppercase $route.Method | padleft 6 }} {{ $route.Path | padleft 30 }} {{ $endpoint.Method.Description }}
+	{{- end }}
+{{- end }}
+
+	r := mux.New()
+	r.RedirectFixedPath = false
+	r.RedirectTrailingSlash = false
+
+	e := NewServerEndpoints(s)
+	options := []httptransport.ServerOption{
+		httptransport.ServerErrorLogger(logger),
+		httptransport.ServerErrorEncoder(encodeError),
+	}
+
+{{- range $endpoint := .Endpoints }}
+	{{- range $route := $endpoint.Routes  }}
+	r.{{ $route.Method | lowercase | title }}("{{ $route.Path }}", httptransport.NewServer(
+		e.{{ varname $endpoint.Method.Name true }}Endpoint,
+		decode{{ varname $endpoint.Method.Name true }}Request,
+		encodeResponse  encode{{ varname $endpoint.Method.Name true }}Response,
+		options...,
+	))
+	{{ end -}}
+{{ end }}
+	return r
+}
+{{ end }}
+
+
+{{ define "TRANSPORT_HTTP_DECODER" }}
+func decodeGetRolesRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+	return nil, nil
+}
+
+
+func decodeGetRoleRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	params := mux.ContextParams(r.Context())
+	name, ok := params["name"]
+	if !ok {
+		return nil, ErrBadRoute
+	}
+
+	return getRoleRequest{
+		Name: name,
+	}, nil
+}
+
+func decodeCreateRoleRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var req createRoleRequest
+	if e := json.NewDecoder(r.Body).Decode(&req); e != nil {
+		return nil, e
+	}
+	return req, nil
+}
+
+func decodeUpdateRoleRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	params := mux.ContextParams(r.Context())
+	name, ok := params["name"]
+	if !ok {
+		return nil, ErrBadRoute
+	}
+
+	req := updateRoleRequest{
+		Name: name,
+	}
+	if e := json.NewDecoder(r.Body).Decode(&req); e != nil {
+		return nil, e
+	}
+	return req, nil
+}
+
+func decodeDeleteRoleRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	params := mux.ContextParams(r.Context())
+	name, ok := params["name"]
+	if !ok {
+		return nil, ErrBadRoute
+	}
+
+	return deleteRoleRequest{
+		Name: name,
+	}, nil
+}
+{{ end }}
+
+{{ define "TRANSPORT_HTTP_ENCODER" }}
+func encodeCreateRoleResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	// fail on business logic errors
+	if e, ok := response.(errorer); ok && e.error() != nil {
+		encodeError(ctx, e.error(), w)
+		return nil
+	}
+	u := response.(createRoleResponse)
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Location", fmt.Sprint("/api/v1/roles/%s", u.Role.Name))
+	w.WriteHeader(http.StatusCreated)
+	return json.NewEncoder(w).Encode(response)
+}
+
+func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	// fail on business logic errors
+	if e, ok := response.(errorer); ok && e.error() != nil {
+		encodeError(ctx, e.error(), w)
+		return nil
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(response)
+}
+{{ end }}
+
+{{ define "TRANSPORT_HTTP_ERROR_ENCODER" }}
+// encode errors from business-logic
+func encodeError(_ context.Context, err error, w http.ResponseWriter) {
+	switch err {
+	case ErrNoResult:
+		w.WriteHeader(http.StatusNotFound)
+
+	case ErrInvalidName:
+		fallthrough
+	case ErrDuplicate:
+		fallthrough
+	case ErrInvalidScope:
+		w.WriteHeader(http.StatusBadRequest)
+
+		//	//case ErrAuthenticateFailed:
+		//	//	w.WriteHeader(http.StatusBadRequest)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"error": err.Error(),
+	})
+}
+{{ end }}

@@ -49,15 +49,14 @@ func Run(targetPath string, names ...string) error {
 	}
 
 	//todo: run plugins etc
-
 	for _, fw := range files {
 		filename := path.Join(gopath, "src", targetPath, fw.Path())
 		os.MkdirAll(path.Dir(filename), 0755)
 		actionTaken := "SKIP"
-		if _, err := os.Stat(filename); err == nil {
+		forceOverwrite := true /* todo: make this option flaggable */
+		if _, err := os.Stat(filename); !os.IsNotExist(err) && !forceOverwrite {
 			//nop
 		} else {
-
 			buf := bytes.NewBuffer(nil)
 			err = fw.Write(buf)
 			if err != nil {

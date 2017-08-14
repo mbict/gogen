@@ -17,7 +17,6 @@ type ValidationExpr struct {
 	Required []string
 }
 
-
 func (v *ValidationExpr) AddRequired(required []string) {
 	for _, r := range required {
 		found := false

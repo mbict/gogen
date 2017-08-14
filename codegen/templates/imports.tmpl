@@ -1,9 +1,14 @@
-{{define "IMPORTS"}}
-{{$imports := .ToSlice -}}{{if $imports}}
+{{- define "IMPORTS" }}
+{{ $imports := .ToSlice -}}{{ if $imports -}}
 import (
-{{- range $import := $imports}}
-	"{{$import}}"
-{{- end}}
+{{- range $import := $imports }}
+	{{ $import }}
+{{- end }}
 )
-{{- end}}
-{{- end}}
+{{- end }}
+{{- end }}
+
+{{- define "PACKAGE" -}}
+package {{ baseName .Package }}
+{{ template "IMPORTS" . }}
+{{ end }}

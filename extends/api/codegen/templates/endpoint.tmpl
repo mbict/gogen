@@ -1,0 +1,60 @@
+{{ define "ENDPOINTS_INTERFACE" }}
+type Endpoints struct {
+{{- range .Service.Methods }}
+	{{- if len .Endpoints }}
+	{{ .Name }}Endpoint endpoint.Endpoint
+	{{- end }}
+{{- end }}
+}
+{{ end }}
+
+{{ define "ENDPOINT_CONSTRUCTOR" }}
+func NewServerEndpoints(s Service) *Endpoints {
+	return &Endpoints{
+	{{- range .Service.Methods }}
+		{{- if len .Endpoints }}
+		{{ .Name }}Endpoint: New{{ .Name }}Endpoint(s),
+		{{- end }}
+	{{- end }}
+	}
+}
+{{ end }}
+
+{{ define "ENDPOINT_REQUEST" }}
+type {{varname .Method.Name false}}Request struct {
+	{{- template "OBJECT" .Method.Payload }}
+}
+{{ end }}
+
+{{ define "ENDPOINT_RESPONSE" }}
+type {{varname .Method.Name false}}Response struct {
+{{- template "OBJECT" .Method.Results }}
+	Error error `json:"error,omitempty"`
+}
+
+func (r {{varname .Method.Name false}}Response) error() error {
+	return r.Error
+}
+{{ end }}
+
+{{ define "ENDPOINT_METHOD_CONSTRUCTOR" }}
+func New{{varname .Method.Name true}}Endpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		{{- if len .Method.Payload.Type }}
+		payload := request.({{varname .Method.Name false}}Request)
+		{{- end }}
+		{{ range $field := .Method.Results.Type }}{{ varname $field.Name false }}, {{ end -}}
+		e := s.{{ varname .Method.Name true }}(ctx
+		{{- range $attr := .Method.Payload.Type -}}
+		, payload.{{ varname $attr.Name true }}
+		{{- end -}}
+		)
+		return {{varname .Method.Name false}}Response{
+			{{- range $field := .Method.Results.Type }}
+			{{ varname $field.Name true }}: {{ varname $field.Name false }},
+			{{- end }}
+			Error: e,
+		}, nil
+	}
+}
+{{ end }}

@@ -1,8 +1,8 @@
 package codegen
 
 import (
-	"github.com/mbict/gogen/generator"
 	"github.com/mbict/gogen/extends/api"
+	"github.com/mbict/gogen/generator"
 )
 
 var gen *Generator

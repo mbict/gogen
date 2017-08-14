@@ -1,6 +1,8 @@
 package gogen
 
-import "errors"
+import (
+	"errors"
+)
 
 type Kind int
 
@@ -42,13 +44,23 @@ type Composite interface {
 
 // UserTypeExpr defines a user defined type
 type UserTypeExpr struct {
+	PackageNameExpr
 	*AttributeExpr
 
 	// TypeName defines the name of the new user type
 	TypeName string
 
-	// Package this user type belongs to
-	Package string
+	// Name this user type belongs to
+	pkg string
+}
+
+// NewUserType creates a minimal user type
+func NewUserType(name string, dataType DataType, pkg string) *UserTypeExpr {
+	return &UserTypeExpr{
+		PackageNameExpr: PackageNameExpr{Name: pkg},
+		AttributeExpr:   NewAttribute(dataType),
+		TypeName:        name,
+	}
 }
 
 const (
@@ -118,10 +130,8 @@ const (
 
 // Empty represents empty values.
 var Empty = &UserTypeExpr{
-	TypeName: "Empty",
-	AttributeExpr: &AttributeExpr{
-		Type: &Object{},
-	},
+	TypeName:      "Empty",
+	AttributeExpr: NewAttribute(&Object{}),
 }
 
 // Kind implements the DataKind interface
@@ -208,6 +218,11 @@ func (o *Object) Field(name string) *AttributeExpr {
 	return nil
 }
 
+// IsEmpty checks if the object is empty
+func (o *Object) IsEmpty() bool {
+	return len(*o) == 0
+}
+
 // Kind implements DataKind.
 func (ut *UserTypeExpr) Kind() Kind {
 	return UserTypeKind
@@ -221,4 +236,3 @@ func (ut *UserTypeExpr) Name() string {
 func (ut *UserTypeExpr) Attribute() *AttributeExpr {
 	return ut.AttributeExpr
 }
-

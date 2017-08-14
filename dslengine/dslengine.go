@@ -57,10 +57,9 @@ func Reset() {
 // roots to have them be executed (last) in the same run.
 func Run() error {
 	if len(roots) == 0 {
-		return nil
+		return Errors
 	}
 
-	Errors = nil
 	executed := 0
 	recurred := 0
 	for executed < len(roots) {
@@ -75,21 +74,21 @@ func Run() error {
 			return fmt.Errorf("too many generated roots, infinite loop?")
 		}
 	}
+
 	if Errors != nil {
 		return Errors
 	}
 
-	/*
-		for _, root := range roots {
-			root.IterateSets(validateSet)
-		}
-		if Errors != nil {
-			return Errors
-		}
-		for _, root := range roots {
-			root.IterateSets(finalizeSet)
-		}
-	*/
+	for _, root := range roots {
+		root.IterateSets(validateSet)
+	}
+	if Errors != nil {
+		return Errors
+	}
+
+	for _, root := range roots {
+		root.IterateSets(finalizeSet)
+	}
 	return nil
 }
 
@@ -203,24 +202,6 @@ func runSet(set DefinitionSet) error {
 	return nil
 }
 
-/*
-// validateSet runs the validation on all the set definitions that define one.
-func validateSet(set DefinitionSet) error {
-	errors := &ValidationErrors{}
-	for _, def := range set {
-		if validate, ok := def.(Validate); ok {
-			if err := validate.Validate(); err != nil {
-				errors.AddError(def, err)
-			}
-		}
-	}
-	err := errors.AsError()
-	if err != nil {
-		Errors = append(Errors, &Error{GoError: err})
-	}
-	return err
-}
-
 // finalizeSet runs the validation on all the set definitions that define one.
 func finalizeSet(set DefinitionSet) error {
 	for _, def := range set {
@@ -230,6 +211,26 @@ func finalizeSet(set DefinitionSet) error {
 	}
 	return nil
 }
+
+// validateSet runs the validation on all the set definitions that define one.
+func validateSet(set DefinitionSet) error {
+	//errors := &ValidationErrors{}
+	for _, def := range set {
+		if validate, ok := def.(Validate); ok {
+			if err := validate.Validate(); err != nil {
+				//errors.AddError(def, err)
+			}
+		}
+	}
+	//err := errors.AsError()
+	//if err != nil {
+	//	Errors = append(Errors, &Error{GoError: err})
+	//}
+	//return err
+	return nil
+}
+
+/*
 
 // SortRoots orders the DSL roots making sure dependencies are last. It returns an error if there
 // is a dependency cycle.

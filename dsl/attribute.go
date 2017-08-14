@@ -149,11 +149,8 @@ func Attribute(name string, args ...interface{}) {
 		//		baseAttr.Type = dataType
 		//	}
 		//} else {
-		baseAttr = &gogen.AttributeExpr{
-			Type:        dataType,
-			Description: description,
-			Validation: &gogen.ValidationExpr{},
-		}
+		baseAttr = gogen.NewAttribute(dataType)
+		baseAttr.SetDescription(description)
 		//}
 		//baseAttr.Reference = parent.Reference
 		if dsl != nil {

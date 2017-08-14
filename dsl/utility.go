@@ -5,15 +5,15 @@ import (
 	"github.com/mbict/gogen/dslengine"
 )
 
-// Namespace can be used on expressions who implement the dsl.Namespace interface
+// Package can be used on expressions who implement the dsl.Packager interface
 // It is intended to describe the name of the package/namespace or directory where the generated code will be generated.
-func Namespace(namespace string) {
-	expr, ok := dslengine.Current().(gogen.Namespace)
+func Package(name string) {
+	expr, ok := dslengine.Current().(gogen.Packager)
 	if !ok {
 		dslengine.IncompatibleDSL()
 		return
 	}
-	expr.SetNamespace(namespace)
+	expr.SetPackage(name)
 }
 
 // DescriptionExpr will set the docuementation/description about a particular expression.
@@ -27,6 +27,11 @@ func Description(description string) {
 	expr.SetDescription(description)
 }
 
-func Error( name string, dataType gogen.DataType, description ...string) {
+func Error(name string, dataType gogen.DataType, description ...string) {
 
+}
+
+// Trait simply returns the dsl function for reuse
+func Trait(dsl func()) func() {
+	return dsl
 }

@@ -1,0 +1,6 @@
+{{- define "RETURN_TYPES" }}
+	{{- range $index, $attr := . }}
+		{{- if ne $index 0 }}, {{ end }}
+		{{- template "TYPE" .Attribute.Type }}
+	{{- end }}
+{{- end }}

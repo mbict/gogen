@@ -94,12 +94,12 @@ func Type(name string, args ...interface{}) *gogen.UserTypeExpr {
 		return nil
 	}
 
-	t := &gogen.UserTypeExpr{
+	ut := &gogen.UserTypeExpr{
 		TypeName:      name,
-		AttributeExpr: &gogen.AttributeExpr{Type: base},
+		AttributeExpr: gogen.NewAttribute(base),
 	}
-	dslengine.Execute(dsl, t.AttributeExpr)
+	dslengine.Execute(dsl, ut)
 
-	//gogen.Root.Types = append(gogen.Root.Types, t)
-	return t
+	gogen.Root.AddUserType(ut)
+	return ut
 }

@@ -1,8 +1,8 @@
 package generator
 
 import (
-	"text/template"
 	"io"
+	"text/template"
 )
 
 // A Section consists of a template and accompaying render data.

@@ -1,3 +1,3 @@
 package gogen
 
-type MetadataList map[string][]string
+type Metadata map[string][]string

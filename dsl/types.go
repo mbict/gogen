@@ -20,22 +20,13 @@ const (
 )
 
 // Usertype of predefined UUID type
-var UUID = &gogen.UserTypeExpr{
-	AttributeExpr: &gogen.AttributeExpr{
-		Type: String,
-	},
-	TypeName: "UUID",
-	Package:  "github.com/satori/go.uuid",
-}
+var UUID = gogen.NewUserType("UUID", String, "/github.com/satori/go.uuid")
 
 // Usertype of the date / time format type
-var DateTime = &gogen.UserTypeExpr{
-	AttributeExpr: &gogen.AttributeExpr{
-		Type: String,
-	},
-	TypeName: "Time",
-	Package:  "time",
-}
+var DateTime = gogen.NewUserType("Time", String, "/time")
+
+// Usertype of the go builtin context
+var Context = gogen.NewUserType("Context", Any, "/context")
 
 // ArrayOf creates an array type from its element type.
 //
@@ -71,7 +62,7 @@ func ArrayOf(v interface{}, dsl ...func()) *gogen.Array {
 		}
 	}
 	// never return nil to avoid panics, errors are reported after DSL execution
-	res := &gogen.Array{ElemType: &gogen.AttributeExpr{Type: gogen.String}}
+	res := &gogen.Array{ElemType: gogen.NewAttribute(gogen.String)}
 	if t == nil {
 		dslengine.ReportError("invalid ArrayOf argument: not a type and not a known user type name")
 		return res
@@ -80,11 +71,11 @@ func ArrayOf(v interface{}, dsl ...func()) *gogen.Array {
 		dslengine.ReportError("ArrayOf: too many arguments")
 		return res
 	}
-	at := gogen.AttributeExpr{Type: t}
+	at := gogen.NewAttribute(t)
 	if len(dsl) == 1 {
-		dslengine.Execute(dsl[0], &at)
+		dslengine.Execute(dsl[0], at)
 	}
-	return &gogen.Array{ElemType: &at}
+	return &gogen.Array{ElemType: at}
 }
 
 // MapOf creates a map from its key and element types.

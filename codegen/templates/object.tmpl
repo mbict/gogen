@@ -1,13 +1,35 @@
-{{define "OBJECT" -}}
-{{- range $field := .Type}}
-	{{title $field.Name}} {{template "ATTRIBUTE" dict "Attribute" $field.Attribute "Object" .}}{{template "TAGS" $field.Attribute}}
-{{- end}}
-{{- end}}
+{{ define "OBJECT" -}}
+{{- range $field := .Type }}
+	{{ varname .Name true}} {{ template "TYPE" $field.Attribute.Type }} {{ template "TAGS" $field.Attribute }}
+{{- end }}
+{{- end }}
 
 
-{{define "TAGS" -}}
-{{- if .Metadata}}
-{{- if or  | .Metadata "go:struct:tag:json" | .Metadata "go:struct:tag:xml" | .Metadata "go:struct:tag:form"}} `json:"" xml:"" form:""`{{end}}
-{{- end}}
-{{- end}}
+{{ define "TAGS" -}}
+	{{- if or (index .Metadata "go:struct:tag:json") (index .Metadata "go:struct:tag:xml") (index .Metadata "go:struct:tag:form") -}}
+		`
+		{{- if index .Metadata "go:struct:tag:json" }}json:{{ join (index .Metadata "go:struct:tag:json") "," | quote }}{{ end -}}
+		{{- if index .Metadata "go:struct:tag:xml" }}xml:{{ join (index .Metadata "go:struct:tag:xml") "," | quote }}{{ end -}}
+		{{- if index .Metadata "go:struct:tag:form" }}form:{{ join (index .Metadata "go:struct:tag:form") "," | quote }}{{ end -}}
+		`
+	{{- end -}}
+{{- end }}
 
+
+{{ define "STRUCT" }}
+type {{ varname .Name true }} struct {
+{{- template "OBJECT" . }}
+}
+{{ end }}
+
+
+{{ define "PRIMITIVE_TYPE" }}
+type {{ varname .Name true }} {{ template "TYPE" .Type }}
+{{- end }}
+
+
+{{ define "USERTYPE" -}}
+{{ if isObject .Type }}{{ template "STRUCT" . }}
+{{- else if isPrimitive .Type }}{{ template "PRIMITIVE_TYPE" . }}
+{{ end }}
+{{- end }}

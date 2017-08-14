@@ -3,7 +3,7 @@ package gogen
 // Attribute defines the base of attribute
 type AttributeExpr struct {
 	// DescriptionExpr is a description about the attribute
-	Description string
+	description string
 
 	// Type is attribute data type e.g. Primitive, array, object
 	Type DataType
@@ -12,13 +12,20 @@ type AttributeExpr struct {
 	Validation *ValidationExpr
 
 	// Metadata is a list of Key/Values pair
-	Metadata MetadataList
+	Metadata Metadata
+}
+
+func (a *AttributeExpr) Description() string {
+	return a.description
+}
+
+func (a *AttributeExpr) SetDescription(description string) {
+	a.description = description
 }
 
 func (a *AttributeExpr) Context() string {
 	return "attribute"
 }
-
 
 // AllRequired returns the list of all required fields from the underlying
 // object. This method recurses if the type is itself an attribute (i.e. a
@@ -44,4 +51,12 @@ func (a *AttributeExpr) IsRequired(attributeName string) bool {
 		}
 	}
 	return false
+}
+
+func NewAttribute(dataType DataType) *AttributeExpr {
+	return &AttributeExpr{
+		Type:       dataType,
+		Metadata:   make(Metadata, 0),
+		Validation: &ValidationExpr{},
+	}
 }

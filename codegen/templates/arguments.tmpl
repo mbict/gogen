@@ -1,0 +1,5 @@
+{{- define "ARGUMENTS" }}
+	{{- range $index, $attr := . }}
+		{{- if ne $index 0 }}, {{ end }}{{ varname .Name false }} {{ template "TYPE" .Attribute.Type }}
+	{{- end }}
+{{- end }}

@@ -1,15 +1,19 @@
 package generator
 
 import (
+	"github.com/mbict/gogen"
 	"github.com/mbict/gogen/lib"
 	"path"
 	"regexp"
-	"github.com/mbict/gogen"
+	"strconv"
+	"strings"
 )
 
 type Imports interface {
-	Add(string)
+	Add(pkg string)
+	AddAlias(alias string, pkg string)
 	AddFromAttribute(*gogen.AttributeExpr)
+	Package() string
 	ToSlice() []string
 }
 
@@ -31,8 +35,13 @@ func NewImports(basePackage string) Imports {
 //	UUID: "github.com/satori/go.uuid",
 //}
 
-func (i *imports) Add(packagePath string) {
-	i.packages[packagePath] = packagePath
+func (i *imports) Add(pkg string) {
+	i.packages[pkg] = pkg
+}
+
+// AddAlias will add the new package or overwrite an existing package
+func (i *imports) AddAlias(alias string, pkg string) {
+	i.packages[pkg] = alias
 }
 
 // AddFromAttribute collects all the external packages needed by the attribute definition
@@ -44,14 +53,14 @@ func (i *imports) AddFromAttribute(attr *gogen.AttributeExpr) {
 	var recursiveImport func(interface{})
 	recursiveImport = func(in interface{}) {
 		switch t := in.(type) {
-		case gogen.Composite:
-			recursiveImport(t.Attribute().Type)
-		case *gogen.UserTypeExpr:
-			if t.Package != "" {
-				i.packages[t.Package] = t.Package
+		case gogen.Packager:
+			if t.Package() != "" && t.Package() != i.basePackage {
+				i.packages[t.Package()] = t.Package()
 			}
 		case *gogen.Array:
 			recursiveImport(t.ElemType.Type)
+		case gogen.Composite:
+			recursiveImport(t.Attribute().Type)
 		case *gogen.Object:
 			for _, field := range *t {
 				recursiveImport(field.Attribute.Type)
@@ -62,7 +71,21 @@ func (i *imports) AddFromAttribute(attr *gogen.AttributeExpr) {
 }
 
 func (i *imports) ToSlice() []string {
-	return lib.StringMapToSlice(i.packages)
+	mapKeys := lib.MapIndex(i.packages)
+	res := make([]string, len(i.packages))
+	for index, key := range mapKeys {
+		if !strings.EqualFold(i.packages[key], key) {
+			//aliased
+			res[index] = i.packages[key] + " " + strconv.Quote(key)
+		} else {
+			res[index] = strconv.Quote(key)
+		}
+	}
+	return res
+}
+
+func (i *imports) Package() string {
+	return i.basePackage
 }
 
 var basePackageRegex = regexp.MustCompile(`^(?:go[.\-_])?(.*)$`)

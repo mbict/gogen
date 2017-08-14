@@ -1,11 +1,12 @@
-{{ define "SERVICE" }}
-type {{ .Service.Name }} interface {
+{{ define "SERVICE_INTERFACE" }}
+type Service interface {
 	{{- range .Service.Methods }}
-	{{ template "METHOD" . -}}
+	{{ template "SERVICE_METHOD" . -}}
 	{{- end }}
 }
 {{ end }}
 
-{{- define "METHOD" -}}
-	{{ .Name }}() ({{ if .Results }}{{ template "TYPES" .Results }}{{ end }})
+{{- define "SERVICE_METHOD" -}}
+	{{ varname .Name true }}(ctx context.Context{{ if len .Payload.Type}}, {{ end }}{{ template "ARGUMENTS" .Payload.Type }})
+	{{- if len .Results.Type }} ({{ template "RETURN_TYPES" .Results.Type }}, error){{ else }} error{{ end }}
 {{- end }}

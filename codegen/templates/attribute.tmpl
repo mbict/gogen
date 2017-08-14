@@ -1,8 +1,6 @@
 {{define "ATTRIBUTE"}}
 {{- $attr := . -}}
 {{- if .Attribute}}$attr := .Attribute{{end -}}
-{{- $obj := false -}}
-{{- if .Object}}$obj := .Object{{end -}}
 {{- if eq $attr.Type.Name "boolean" "int32" "int64" "uint32" "uint64" "float32" "float64" "string" -}}
 {{template "ATTRIBUTE_IS_REQUIRED" .}}{{$attr.Type.Name}}
 {{- else if eq $attr.Type.Name "array" -}}
